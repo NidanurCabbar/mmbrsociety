@@ -2499,11 +2499,27 @@ const IYZICO_BASE_URL   = Deno.env.get('IYZICO_SANDBOX') === 'false'
   ? 'https://api.iyzipay.com'
   : 'https://sandbox-api.iyzipay.com'; // sandbox default (geliştirme)
 
-/** HMAC-SHA256 tabanlı İyzico imzası */
-async function iyzicoSign(randomKey: string, body: string): Promise<string> {
-  const msg = IYZICO_API_KEY + randomKey + body;
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
+/** İyzico PKI string builder — iyzipay SDK ile birebir aynı format */
+function toPKI(val: any): string {
+  if (val === null || val === undefined) return '';
+  if (Array.isArray(val)) {
+    return '[' + val.map((v) => toPKI(v)).join(', ') + ']';
+  }
+  if (typeof val === 'object') {
+    const parts = Object.keys(val)
+      .filter((k) => val[k] !== null && val[k] !== undefined)
+      .map((k) => `${k}=${toPKI(val[k])}`);
+    return '[' + parts.join(',') + ']';
+  }
+  return String(val);
+}
+
+/** HMAC-SHA256 tabanlı İyzico imzası — body PKI string olarak imzalanır */
+async function iyzicoSign(randomKey: string, body: object): Promise<string> {
+  const pkiStr = toPKI(body);
+  const msg    = IYZICO_API_KEY + randomKey + pkiStr;
+  const enc    = new TextEncoder();
+  const key    = await crypto.subtle.importKey(
     'raw', enc.encode(IYZICO_SECRET_KEY),
     { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
   );
@@ -2515,7 +2531,7 @@ async function iyzicoSign(randomKey: string, body: string): Promise<string> {
 async function iyzicoPost(path: string, body: object): Promise<any> {
   const randomKey = crypto.randomUUID().replace(/-/g, '');
   const bodyStr   = JSON.stringify(body);
-  const signature = await iyzicoSign(randomKey, bodyStr);
+  const signature = await iyzicoSign(randomKey, body);
   const res = await fetch(`${IYZICO_BASE_URL}${path}`, {
     method: 'POST',
     headers: {
