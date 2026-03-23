@@ -204,10 +204,13 @@ export default function ReservationPage() {
       }
 
       // Ödeme akışı: rezervasyon kaydedildikten sonra ödemeye yönlendir
-      const tablePrice = selectedTable?.price || 0;
-      if (tablePrice > 0) {
+      let paymentAmount = selectedTable?.price || 0;
+      if (reservationType === 'standing') paymentAmount = 200;
+      if (reservationType === 'special')  paymentAmount = 1500;
+
+      if (paymentAmount > 0) {
         const paymentRes = await apiService.createPaymentCheckout({
-          amount: tablePrice,
+          amount: paymentAmount,
           paymentType: 'reservation',
           referenceId: response.reservation?.id,
           description: `Rezervasyon — ${selectedTable?.name || reservationType} (${selectedDate})`,
@@ -228,7 +231,7 @@ export default function ReservationPage() {
           state: {
             checkoutFormContent: paymentRes.checkoutFormContent,
             conversationId:      paymentRes.conversationId,
-            amount:              tablePrice,
+            amount:              paymentAmount,
             description:         `Rezervasyon — ${selectedTable?.name || reservationType}`,
           },
         });

@@ -10,8 +10,9 @@ app.use('*', cors({
   origin: [
     'https://mmbrsociety.com',
     'https://www.mmbrsociety.com',
-    'http://localhost:5173',   // Lokal geliştirme (Vite default)
-    'http://localhost:4173',   // Lokal preview (vite preview)
+    'https://mmbrsociety.vercel.app',  // Vercel preview
+    'http://localhost:5173',           // Lokal geliştirme (Vite default)
+    'http://localhost:4173',           // Lokal preview (vite preview)
   ],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
