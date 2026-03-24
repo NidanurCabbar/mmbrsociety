@@ -3,6 +3,7 @@ import { cors } from 'npm:hono/cors';
 import { logger } from 'npm:hono/logger';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import * as kv from './kv_store.tsx';
+import Iyzipay from 'npm:iyzipay';
 
 const app = new Hono();
 
@@ -2499,50 +2500,23 @@ const IYZICO_BASE_URL   = Deno.env.get('IYZICO_SANDBOX') === 'false'
   ? 'https://api.iyzipay.com'
   : 'https://sandbox-api.iyzipay.com'; // sandbox default (geliştirme)
 
-/** İyzico PKI string builder — iyzipay SDK ile birebir aynı format */
-function toPKI(val: any): string {
-  if (val === null || val === undefined) return '';
-  if (Array.isArray(val)) {
-    return '[' + val.map((v) => toPKI(v)).join(', ') + ']';
-  }
-  if (typeof val === 'object') {
-    const parts = Object.keys(val)
-      .filter((k) => val[k] !== null && val[k] !== undefined)
-      .map((k) => `${k}=${toPKI(val[k])}`);
-    return '[' + parts.join(',') + ']';
-  }
-  return String(val);
-}
-
-/** HMAC-SHA256 tabanlı İyzico imzası — body PKI string olarak imzalanır */
-async function iyzicoSign(randomKey: string, body: object): Promise<string> {
-  const pkiStr = toPKI(body);
-  const msg    = IYZICO_API_KEY + randomKey + pkiStr;
-  const enc    = new TextEncoder();
-  const key    = await crypto.subtle.importKey(
-    'raw', enc.encode(IYZICO_SECRET_KEY),
-    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(msg));
-  return btoa(String.fromCharCode(...new Uint8Array(sig)));
-}
-
-/** İyzico POST isteği gönder */
-async function iyzicoPost(path: string, body: object): Promise<any> {
-  const randomKey = crypto.randomUUID().replace(/-/g, '');
-  const bodyStr   = JSON.stringify(body);
-  const signature = await iyzicoSign(randomKey, body);
-  const res = await fetch(`${IYZICO_BASE_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type':            'application/json',
-      'Authorization':           `IYZWS ${IYZICO_API_KEY}:${signature}`,
-      'x-iyzi-rnd':              randomKey,
-      'x-iyzi-client-version':   'iyzipay-deno-1.0',
-    },
-    body: bodyStr,
+/** Resmi iyzipay SDK instance */
+function getIyzipay() {
+  return new Iyzipay({
+    apiKey:    IYZICO_API_KEY,
+    secretKey: IYZICO_SECRET_KEY,
+    uri:       IYZICO_BASE_URL,
   });
-  return res.json();
+}
+
+/** İyzipay SDK promisify yardımcısı */
+function iyziCall(fn: Function, data: object): Promise<any> {
+  return new Promise((resolve, reject) => {
+    fn(data, (err: any, result: any) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
 }
 
 // ---- Checkout formu oluştur ----
@@ -2614,8 +2588,9 @@ app.post('/make-server-350bb6b2/payments/create-checkout', async (c) => {
       }],
     };
 
-    const iyziRes = await iyzicoPost(
-      '/payment/iyzipos/checkoutform/initialize/auth/ecom',
+    const iyzipay = getIyzipay();
+    const iyziRes = await iyziCall(
+      iyzipay.checkoutFormInitialize.create.bind(iyzipay.checkoutFormInitialize),
       checkoutBody
     );
 
@@ -2661,48 +2636,58 @@ app.post('/make-server-350bb6b2/payments/callback', async (c) => {
       token = body.token || '';
     }
 
+    const FRONTEND_URL = 'https://mmbrsociety.vercel.app';
+
     if (!token) {
-      return c.redirect('https://mmbrsociety.com/payment/result?status=failure');
+      return c.redirect(`${FRONTEND_URL}/payment/result?status=failure`);
     }
 
+    // DB'den conversation_id'yi al
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('conversation_id, payment_type, reference_id')
+      .eq('token', token)
+      .maybeSingle();
+
     // Ödeme durumunu sorgula
-    const detailRes = await iyzicoPost(
-      '/payment/iyzipos/checkoutform/auth/ecom/detail',
-      { locale: 'tr', conversationId: token, token }
+    const iyzipay2 = getIyzipay();
+    const detailRes = await iyziCall(
+      iyzipay2.checkoutFormRetrieve.retrieve.bind(iyzipay2.checkoutFormRetrieve),
+      {
+        locale:         'tr',
+        conversationId: existingPayment?.conversation_id || `cb-${Date.now()}`,
+        token,
+      }
     );
 
     const success = detailRes.status === 'success' && detailRes.paymentStatus === 'SUCCESS';
 
     // payments tablosunu güncelle
-    const { data: payment } = await supabase
+    await supabase
       .from('payments')
       .update({
-        status:             success ? 'success' : 'failure',
-        iyzico_payment_id:  detailRes.paymentId || null,
-        updated_at:         new Date().toISOString(),
+        status:            success ? 'success' : 'failure',
+        iyzico_payment_id: detailRes.paymentId || null,
+        updated_at:        new Date().toISOString(),
       })
-      .eq('token', token)
-      .select()
-      .single();
+      .eq('token', token);
 
     // İlgili rezervasyon/üyelik durumunu KV store'da güncelle
-    if (success && payment?.reference_id) {
+    if (success && existingPayment?.reference_id) {
       try {
-        const existing = await kv.get(payment.reference_id);
+        const existing = await kv.get(existingPayment.reference_id);
         if (existing) {
-          await kv.set(payment.reference_id, { ...existing, payment_status: 'paid' });
+          await kv.set(existingPayment.reference_id, { ...existing, payment_status: 'paid' });
         }
       } catch (_) { /* KV güncelleme hatası ödeme başarısını etkilemesin */ }
     }
 
     const statusParam = success ? 'success' : 'failure';
-    const typeParam   = payment?.payment_type || '';
-    return c.redirect(
-      `https://mmbrsociety.com/payment/result?status=${statusParam}&type=${typeParam}`
-    );
+    const typeParam   = existingPayment?.payment_type || '';
+    return c.redirect(`${FRONTEND_URL}/payment/result?status=${statusParam}&type=${typeParam}`);
   } catch (error) {
     console.error('payment callback error:', error);
-    return c.redirect('https://mmbrsociety.com/payment/result?status=failure');
+    return c.redirect('https://mmbrsociety.vercel.app/payment/result?status=failure');
   }
 });
 
