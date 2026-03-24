@@ -2500,28 +2500,39 @@ const IYZICO_BASE_URL   = Deno.env.get('IYZICO_SANDBOX') === 'false'
   ? 'https://api.iyzipay.com'
   : 'https://sandbox-api.iyzipay.com'; // sandbox default (geliştirme)
 
-/** İyzico checkout form sonucunu doğrudan HTTP ile sorgular (SDK Deno uyumsuzluğu bypass) */
+/** İyzico IYZWSv2 imzası ile checkout form sonucunu sorgular (SDK Deno uyumsuzluğu bypass) */
 async function iyziRetrieveCheckout(params: { locale: string; conversationId: string; token: string }): Promise<any> {
-  const randomString = crypto.randomUUID().replace(/-/g, '');
-  const pkiString    = `[locale=${params.locale},conversationId=${params.conversationId},token=${params.token}]`;
-  const dataToSign   = IYZICO_API_KEY + randomString + IYZICO_SECRET_KEY + pkiString;
+  const uriPath    = '/payment/iyzipos/checkoutform/auth/ecom/detail';
+  const bodyStr    = JSON.stringify(params);
+  const encoder    = new TextEncoder();
 
-  const encoder = new TextEncoder();
-  const keyData  = encoder.encode(IYZICO_SECRET_KEY);
-  const msgData  = encoder.encode(dataToSign);
-  const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const sigBuf    = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
-  const signature = btoa(String.fromCharCode(...new Uint8Array(sigBuf)));
+  // 1) 8 karakter random string
+  const randomKey  = crypto.randomUUID().replace(/-/g, '').slice(0, 8);
 
-  const authHeader = `IYZWSv2 apiKey:${IYZICO_API_KEY}, randomKey:${randomString}, signature:${signature}`;
-  const endpoint   = `${IYZICO_BASE_URL}/payment/iyzipos/checkoutform/auth/ecom/detail`;
+  // 2) SHA-256( randomKey + uriPath + body )  →  hex
+  const shaInput   = encoder.encode(randomKey + uriPath + bodyStr);
+  const shaDigest  = await crypto.subtle.digest('SHA-256', shaInput);
+  const hashHex    = [...new Uint8Array(shaDigest)].map(b => b.toString(16).padStart(2, '0')).join('');
 
-  const res  = await fetch(endpoint, {
+  // 3) HMAC-SHA256( secretKey, hashHex )  →  hex
+  const hmacKey    = await crypto.subtle.importKey('raw', encoder.encode(IYZICO_SECRET_KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const hmacBuf    = await crypto.subtle.sign('HMAC', hmacKey, encoder.encode(hashHex));
+  const sigHex     = [...new Uint8Array(hmacBuf)].map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // 4) Authorization header:  IYZWSv2 apiKey:randomKey:signature
+  const authHeader = `IYZWSv2 ${IYZICO_API_KEY}:${randomKey}:${sigHex}`;
+  const endpoint   = `${IYZICO_BASE_URL}${uriPath}`;
+
+  console.log('[iyziRetrieve] endpoint:', endpoint, 'auth:', authHeader.slice(0, 40) + '...');
+
+  const res = await fetch(endpoint, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', Authorization: authHeader },
-    body:    JSON.stringify(params),
+    body:    bodyStr,
   });
-  return res.json();
+  const json = await res.json();
+  console.log('[iyziRetrieve] response status:', json.status, 'paymentStatus:', json.paymentStatus, 'errorCode:', json.errorCode);
+  return json;
 }
 
 /** Resmi iyzipay SDK instance */

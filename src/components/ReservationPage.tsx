@@ -153,7 +153,12 @@ export default function ReservationPage() {
       toast.error('Lütfen tarih seçin');
       return;
     }
-    
+
+    if (!guestCount || guestCount < 1) {
+      toast.error('Lütfen misafir sayısını girin');
+      return;
+    }
+
     try {
       console.log('Submitting reservation...');
       
