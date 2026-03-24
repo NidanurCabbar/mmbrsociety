@@ -2684,9 +2684,32 @@ app.post('/make-server-350bb6b2/payments/callback', async (c) => {
       .eq('token', token)
       .maybeSingle();
 
-    // Ödeme durumunu sorgula (doğrudan HTTP — SDK'da Deno uyumsuzluğu var)
+    // Ödeme durumunu sorgula
     const conversationId = existingPayment?.conversation_id || `cb-${Date.now()}`;
-    const detailRes = await iyziRetrieveCheckout({ locale: 'tr', conversationId, token });
+    let detailRes: any;
+
+    // Önce SDK ile dene (doğru property: checkoutForm, checkoutFormRetrieve değil)
+    try {
+      const iyz = getIyzipay();
+      console.log('[callback] iyzipay keys:', Object.keys(iyz).join(', '));
+      const retrieveFn = (iyz as any).checkoutForm || (iyz as any).checkoutFormRetrieve;
+      if (retrieveFn && typeof retrieveFn.retrieve === 'function') {
+        console.log('[callback] SDK retrieve found, using SDK');
+        detailRes = await iyziCall(retrieveFn.retrieve.bind(retrieveFn), {
+          locale: 'tr',
+          conversationId,
+          token,
+        });
+      } else {
+        console.log('[callback] SDK retrieve not available, falling back to HTTP');
+        detailRes = await iyziRetrieveCheckout({ locale: 'tr', conversationId, token });
+      }
+    } catch (sdkErr) {
+      console.error('[callback] SDK error, falling back to HTTP:', sdkErr);
+      detailRes = await iyziRetrieveCheckout({ locale: 'tr', conversationId, token });
+    }
+
+    console.log('[callback] detailRes:', JSON.stringify({ status: detailRes?.status, paymentStatus: detailRes?.paymentStatus, errorCode: detailRes?.errorCode, errorMessage: detailRes?.errorMessage }));
 
     const success = detailRes.status === 'success' && detailRes.paymentStatus === 'SUCCESS';
 
