@@ -479,13 +479,10 @@ class ApiService {
       city?: string;
     };
   }): Promise<{ token: string; checkoutFormContent: string; conversationId: string; error?: string }> {
-    const url = `${API_BASE}/payments/create-checkout`;
-    const res = await this.basicFetch(url, {
+    return this.request('/payments/create-checkout', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
     });
-    return res.json();
   }
 
   async getPaymentStatus(conversationId: string): Promise<{

@@ -2500,6 +2500,30 @@ const IYZICO_BASE_URL   = Deno.env.get('IYZICO_SANDBOX') === 'false'
   ? 'https://api.iyzipay.com'
   : 'https://sandbox-api.iyzipay.com'; // sandbox default (geliştirme)
 
+/** İyzico checkout form sonucunu doğrudan HTTP ile sorgular (SDK Deno uyumsuzluğu bypass) */
+async function iyziRetrieveCheckout(params: { locale: string; conversationId: string; token: string }): Promise<any> {
+  const randomString = crypto.randomUUID().replace(/-/g, '');
+  const pkiString    = `[locale=${params.locale},conversationId=${params.conversationId},token=${params.token}]`;
+  const dataToSign   = IYZICO_API_KEY + randomString + IYZICO_SECRET_KEY + pkiString;
+
+  const encoder = new TextEncoder();
+  const keyData  = encoder.encode(IYZICO_SECRET_KEY);
+  const msgData  = encoder.encode(dataToSign);
+  const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sigBuf    = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
+  const signature = btoa(String.fromCharCode(...new Uint8Array(sigBuf)));
+
+  const authHeader = `IYZWSv2 apiKey:${IYZICO_API_KEY}, randomKey:${randomString}, signature:${signature}`;
+  const endpoint   = `${IYZICO_BASE_URL}/payment/iyzipos/checkoutform/auth/ecom/detail`;
+
+  const res  = await fetch(endpoint, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+    body:    JSON.stringify(params),
+  });
+  return res.json();
+}
+
 /** Resmi iyzipay SDK instance */
 function getIyzipay() {
   return new Iyzipay({
@@ -2649,16 +2673,9 @@ app.post('/make-server-350bb6b2/payments/callback', async (c) => {
       .eq('token', token)
       .maybeSingle();
 
-    // Ödeme durumunu sorgula
-    const iyzipay2 = getIyzipay();
-    const detailRes = await iyziCall(
-      iyzipay2.checkoutFormRetrieve.retrieve.bind(iyzipay2.checkoutFormRetrieve),
-      {
-        locale:         'tr',
-        conversationId: existingPayment?.conversation_id || `cb-${Date.now()}`,
-        token,
-      }
-    );
+    // Ödeme durumunu sorgula (doğrudan HTTP — SDK'da Deno uyumsuzluğu var)
+    const conversationId = existingPayment?.conversation_id || `cb-${Date.now()}`;
+    const detailRes = await iyziRetrieveCheckout({ locale: 'tr', conversationId, token });
 
     const success = detailRes.status === 'success' && detailRes.paymentStatus === 'SUCCESS';
 
