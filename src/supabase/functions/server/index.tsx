@@ -2724,11 +2724,16 @@ app.post('/make-server-350bb6b2/payments/callback', async (c) => {
       .eq('token', token);
 
     // İlgili rezervasyon/üyelik durumunu KV store'da güncelle
-    if (success && existingPayment?.reference_id) {
+    if (existingPayment?.reference_id) {
       try {
         const existing = await kv.get(existingPayment.reference_id);
         if (existing) {
-          await kv.set(existingPayment.reference_id, { ...existing, payment_status: 'paid' });
+          if (success) {
+            await kv.set(existingPayment.reference_id, { ...existing, status: 'confirmed', payment_status: 'paid' });
+          } else {
+            // Ödeme başarısız → rezervasyonu iptal et (masa tekrar müsait olsun)
+            await kv.set(existingPayment.reference_id, { ...existing, status: 'cancelled', payment_status: 'failed' });
+          }
         }
       } catch (_) { /* KV güncelleme hatası ödeme başarısını etkilemesin */ }
     }
