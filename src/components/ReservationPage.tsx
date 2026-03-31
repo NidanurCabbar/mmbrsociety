@@ -87,18 +87,14 @@ export default function ReservationPage() {
           const tablesResponse = await apiService.getOccupiedTables(selectedDate, selectedTime);
           if (tablesResponse.occupiedTables) {
             setOccupiedTables(tablesResponse.occupiedTables);
-            console.log('🔒 Occupied tables:', tablesResponse.occupiedTables);
           }
-          
-          // Ayakta rezervasyon ve özel masa durumunu çek
+
           if (tablesResponse.standingCount !== undefined) {
             setStandingReservationCount(tablesResponse.standingCount);
-            console.log('🕺 Standing reservations:', tablesResponse.standingCount);
           }
-          
+
           if (tablesResponse.specialTaken !== undefined) {
             setSpecialReservationTaken(tablesResponse.specialTaken);
-            console.log('👑 Special table taken:', tablesResponse.specialTaken);
           }
         } catch (error) {
           console.error('Error fetching reservation status:', error);
@@ -160,8 +156,6 @@ export default function ReservationPage() {
     }
 
     try {
-      console.log('Submitting reservation...');
-      
       const reservation = {
         table: selectedTable,
         reservationType: reservationType || 'table',
@@ -182,10 +176,7 @@ export default function ReservationPage() {
       console.log('Reservation data:', reservation);
       
       const accessToken = session?.access_token;
-      console.log('Access token present:', !!accessToken);
-      
       const response = await apiService.saveReservation(reservation, accessToken);
-      console.log('Reservation response:', response);
 
       if (response.error) {
         // Çakışma hatası özel olarak işle

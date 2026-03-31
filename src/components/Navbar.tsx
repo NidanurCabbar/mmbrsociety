@@ -98,15 +98,7 @@ export default function Navbar() {
                 >
                   <User className="w-4 h-4" />
                   <span className="text-sm">
-                    {(() => {
-                      console.log('🔍 NAVBAR DEBUG - User metadata:', {
-                        name: user.user_metadata?.name,
-                        fullMetadata: user.user_metadata,
-                        email: user.email,
-                        fallback: user.email.split('@')[0]
-                      });
-                      return user.user_metadata?.name || user.email.split('@')[0];
-                    })()}
+                    {user.user_metadata?.name || user.email.split('@')[0]}
                     {isAdmin && (
                       <span className="text-xs text-gray-400 ml-1">
                         (admin)
@@ -236,15 +228,7 @@ export default function Navbar() {
                   >
                     <User className="w-5 h-5" />
                     <span className="font-medium">
-                      {(() => {
-                        console.log('🔍 MOBILE NAVBAR DEBUG - User metadata:', {
-                          name: user.user_metadata?.name,
-                          fullMetadata: user.user_metadata,
-                          email: user.email,
-                          fallback: user.email.split('@')[0]
-                        });
-                        return user.user_metadata?.name || user.email.split('@')[0];
-                      })()}
+                      {user.user_metadata?.name || user.email.split('@')[0]}
                       {isAdmin && (
                         <span className="text-xs text-gray-400 ml-1">
                           (admin)

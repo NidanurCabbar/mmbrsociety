@@ -764,16 +764,7 @@ app.post('/make-server-350bb6b2/auth/signup', async (c) => {
       return c.json({ error: errorMessage }, 400);
     }
 
-    console.log('🎉 User created successfully:', {
-      id: data.user?.id,
-      email: data.user?.email,
-      name: data.user?.user_metadata?.name,
-      role: data.user?.user_metadata?.role,
-      fullMetadata: data.user?.user_metadata,
-      rawMetadata: JSON.stringify(data.user?.user_metadata, null, 2),
-      inputName: name,
-      inputRole: role
-    });
+    console.log('User created:', data.user?.id, data.user?.email);
 
     return c.json({ 
       success: true,
@@ -806,7 +797,16 @@ app.post('/make-server-350bb6b2/reservations', async (c) => {
     }
 
     const reservationData = await c.req.json();
-    
+
+    // Temel alan doğrulaması
+    if (!reservationData.date || !reservationData.time) {
+      return c.json({ error: 'Tarih ve saat zorunludur' }, 400);
+    }
+    const guestCount = Number(reservationData.guestCount) || 0;
+    if (guestCount < 1 || guestCount > 20) {
+      return c.json({ error: 'Misafir sayısı 1-20 arasında olmalıdır' }, 400);
+    }
+
     // ✅ REZERVASYON TİPİ KONTROLÜ: Ayakta ve Özel Masa için kapasite kontrolü
     const reservationType = reservationData.reservationType || 'table';
     
