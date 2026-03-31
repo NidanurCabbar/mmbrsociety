@@ -2677,7 +2677,7 @@ app.post('/make-server-350bb6b2/payments/callback', async (c) => {
     // DB'den conversation_id'yi al
     const { data: existingPayment } = await supabase
       .from('payments')
-      .select('conversation_id, payment_type, reference_id')
+      .select('conversation_id, payment_type, reference_id, buyer_email')
       .eq('token', token)
       .maybeSingle();
 
@@ -2727,6 +2727,23 @@ app.post('/make-server-350bb6b2/payments/callback', async (c) => {
         if (existing) {
           if (success) {
             await kv.set(existingPayment.reference_id, { ...existing, status: 'confirmed', payment_status: 'paid' });
+
+            // Üyelik ödemesi başarılıysa kullanıcının membership_plan'ını güncelle
+            if (existingPayment.payment_type === 'membership' && existing.plan) {
+              try {
+                const planNames: Record<string, string> = { bronze: 'Bronze', silver: 'Silver', gold: 'Gold' };
+                const planLabel = planNames[existing.plan] || existing.planName || existing.plan;
+                const { data: users } = await supabase.auth.admin.listUsers();
+                const targetUser = users?.users?.find((u: any) => u.email === existingPayment.buyer_email);
+                if (targetUser) {
+                  await supabase.auth.admin.updateUserById(targetUser.id, {
+                    user_metadata: { ...targetUser.user_metadata, membership_plan: planLabel }
+                  });
+                }
+              } catch (membershipErr) {
+                console.error('Membership plan update error:', membershipErr);
+              }
+            }
           } else {
             // Ödeme başarısız → rezervasyonu iptal et (masa tekrar müsait olsun)
             await kv.set(existingPayment.reference_id, { ...existing, status: 'cancelled', payment_status: 'failed' });

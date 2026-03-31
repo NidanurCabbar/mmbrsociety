@@ -80,10 +80,20 @@ export default function FloorPlan({ selectedTable, hoveredTable, onTableHover, o
                       top: `${(table.y / 900) * 100}%`,
                       width: `${(table.width / 1600) * 100}%`,
                       height: `${(table.height / 900) * 100}%`,
-                      minWidth: '32px',
-                      minHeight: '32px'
+                      minWidth: '28px',
+                      minHeight: '28px',
+                      touchAction: 'manipulation',
+                      zIndex: selectedTable?.id === table.id ? 10 : 1,
                     }}
-                    onClick={() => !isOccupied && handleTableClick(table)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isOccupied) handleTableClick(table);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (!isOccupied) handleTableClick(table);
+                    }}
                     onMouseEnter={() => !isOccupied && tableVisible && onTableHover(table)}
                     onMouseLeave={() => !isOccupied && onTableHover(null)}
                   >

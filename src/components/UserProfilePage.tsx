@@ -494,9 +494,9 @@ export default function UserProfilePage() {
               <CardHeader>
                 <CardTitle className="text-white">Kişisel Bilgiler</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
                     <Label htmlFor="name" className="text-white">Ad Soyad</Label>
                     <Input
                       id="name"
@@ -506,8 +506,8 @@ export default function UserProfilePage() {
                       className="bg-gray-800 border-gray-700 text-white"
                     />
                   </div>
-                  
-                  <div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="email" className="text-white">E-posta</Label>
                     <Input
                       id="email"
@@ -516,8 +516,8 @@ export default function UserProfilePage() {
                       className="bg-gray-800 border-gray-700 text-gray-400"
                     />
                   </div>
-                  
-                  <div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="phone" className="text-white">Telefon</Label>
                     <Input
                       id="phone"
@@ -528,8 +528,8 @@ export default function UserProfilePage() {
                       placeholder="5XX XXX XX XX"
                     />
                   </div>
-                  
-                  <div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="birthday" className="text-white">Doğum Tarihi</Label>
                     <Input
                       id="birthday"
@@ -702,8 +702,8 @@ export default function UserProfilePage() {
                     Şifre Değiştir
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
                     <Label htmlFor="current-password" className="text-white">Mevcut Şifre</Label>
                     <Input
                       id="current-password"
@@ -713,8 +713,8 @@ export default function UserProfilePage() {
                       className="bg-gray-800 border-gray-700 text-white"
                     />
                   </div>
-                  
-                  <div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="new-password" className="text-white">Yeni Şifre</Label>
                     <Input
                       id="new-password"
@@ -724,8 +724,8 @@ export default function UserProfilePage() {
                       className="bg-gray-800 border-gray-700 text-white"
                     />
                   </div>
-                  
-                  <div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="confirm-password" className="text-white">Yeni Şifre Tekrar</Label>
                     <Input
                       id="confirm-password"

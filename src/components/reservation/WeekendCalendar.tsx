@@ -103,14 +103,14 @@ export default function WeekendCalendar({
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
-    const newMonth = new Date(currentMonth);
-    if (direction === 'prev') {
-      newMonth.setMonth(newMonth.getMonth() - 1);
-    } else {
-      newMonth.setMonth(newMonth.getMonth() + 1);
-    }
+    // Ayın 1'ini baz al — aksi halde 31 Mart → Nisan(30 gün) → Mayıs 1 bug'ı oluşur
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const newMonth = direction === 'prev'
+      ? new Date(year, month - 1, 1)
+      : new Date(year, month + 1, 1);
     setCurrentMonth(newMonth);
-    
+
     // Ay değiştiğinde seçili tarihi temizle
     onDateChange('');
   };
