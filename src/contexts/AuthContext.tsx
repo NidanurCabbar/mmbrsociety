@@ -133,21 +133,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
-        // Don't log expected errors as errors
-        if (error.message?.includes('Invalid login credentials')) {
-          console.log('[Auth] Login attempt with invalid credentials - user may need to sign up first');
-        } else {
-          console.error('[Auth] Sign in error:', error);
-        }
         throw error;
       }
-      
+
       if (data.session) {
         setSession(data.session);
         setUser(data.session.user);
         const role = data.session.user.app_metadata?.role || 'user';
         setIsAdmin(role === 'admin');
-        console.log('[Auth] User signed in successfully');
       }
       
       return data;
@@ -162,16 +155,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const result = await apiService.signup(email, password, name, role);
       
       if (result.error) {
-        // Don't log expected errors as errors
-        if (result.error.includes('User already registered') || result.error.includes('already exists')) {
-          console.log('[Auth] Sign up attempt with existing email - user should sign in instead');
-        } else {
-          console.error('[Auth] Sign up error:', result.error);
-        }
         throw new Error(result.error);
       }
-      
-      console.log('[Auth] User signed up successfully');
       return result;
     } catch (error: any) {
       throw error;

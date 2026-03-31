@@ -153,20 +153,16 @@ export default function AdminPage() {
 
   const handleAuthError = async (error: any) => {
     if (error.needsReauth || error.code === 401) {
-      console.log('🔄 Authentication error, attempting token refresh...');
       try {
         const newToken = await refreshToken();
         if (newToken) {
-          console.log('✅ Token refreshed successfully, retrying operation...');
-          return true; // Indicate that a retry should be attempted
+          return true;
         } else {
-          console.log('❌ Token refresh failed, signing out...');
           toast.error('Oturum süreniz doldu. Lütfen tekrar giriş yapın.');
           await signOut();
           return false;
         }
       } catch (refreshError) {
-        console.error('💥 Token refresh error:', refreshError);
         toast.error('Oturum yenilenemedi. Lütfen tekrar giriş yapın.');
         await signOut();
         return false;
@@ -203,14 +199,6 @@ export default function AdminPage() {
       if (response.error) {
         console.error('Error loading events:', response.error);
       } else {
-        console.log('=== Events Loaded ===');
-        console.log('Total events:', response.events?.length || 0);
-        response.events?.forEach((event: Event, index: number) => {
-          console.log(`Event ${index + 1}: ${event.title}`);
-          console.log(`  - Image exists: ${!!event.image}`);
-          console.log(`  - Image length: ${event.image?.length || 0}`);
-          console.log(`  - Image preview (first 100 chars): ${event.image?.substring(0, 100) || 'N/A'}`);
-        });
         setEvents(response.events || []);
       }
     } catch (error) {
@@ -222,7 +210,6 @@ export default function AdminPage() {
     try {
       const accessToken = await getAccessToken();
       if (!accessToken) {
-        console.error('No access token available for reservations');
         toast.error('Kimlik doğrulama hatası. Lütfen tekrar giriş yapın.');
         return;
       }
@@ -251,7 +238,6 @@ export default function AdminPage() {
     try {
       const accessToken = await getAccessToken();
       if (!accessToken) {
-        console.error('No access token available for messages');
         toast.error('Kimlik doğrulama hatası. Lütfen tekrar giriş yapın.');
         return;
       }
@@ -280,7 +266,6 @@ export default function AdminPage() {
     try {
       const accessToken = await getAccessToken();
       if (!accessToken) {
-        console.error('No access token available for memberships');
         toast.error('Kimlik doğrulama hatası. Lütfen tekrar giriş yapın.');
         return;
       }
@@ -606,12 +591,6 @@ export default function AdminPage() {
         ...eventForm
       };
 
-      console.log('=== Saving Event Data ===');
-      console.log('Event Title:', eventData.title);
-      console.log('Event Image (first 100 chars):', eventData.image?.substring(0, 100));
-      console.log('Event Image exists:', !!eventData.image);
-      console.log('Event Image length:', eventData.image?.length);
-
       const response = await apiService.saveEvent(eventData, accessToken);
       
       if (response.error) {
@@ -650,47 +629,29 @@ export default function AdminPage() {
   const handleImageUpload = async (file: File) => {
     if (!file) return;
 
-    console.log('🖼️ === IMAGE UPLOAD STARTED ===');
-    console.log('📄 File details:', {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-      sizeKB: (file.size / 1024).toFixed(2) + ' KB',
-      sizeMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
-    });
-
     setUploadingImage(true);
     setImageValidationError('');
-    
+
     try {
       const accessToken = await getAccessToken();
       if (!accessToken) {
-        console.error('❌ No access token available');
         toast.error('Kimlik doğrulama hatası. Lütfen tekrar giriş yapın.');
         return;
       }
-      
-      console.log('🔑 Access token obtained, sending upload request...');
+
       const response = await apiService.uploadEventImage(file, accessToken);
-      
+
       if (response.error) {
-        console.error('❌ Upload failed with error:', response.error);
-        console.error('Error details:', response);
-        
         if (response.needsReauth || response.code === 401) {
           const shouldRetry = await handleAuthError(response);
           if (shouldRetry) {
             const newToken = await getAccessToken();
             if (newToken) {
-              console.log('🔄 Retrying upload with new token...');
               const retryResponse = await apiService.uploadEventImage(file, newToken);
               if (retryResponse.error) {
-                console.error('❌ Retry failed:', retryResponse.error);
                 toast.error('Görsel yüklenirken hata oluştu: ' + retryResponse.error);
                 return;
               } else {
-                console.log('✅ Retry successful!');
-                console.log('🔗 Image URL:', retryResponse.imageUrl);
                 setEventForm(prev => ({ ...prev, image: retryResponse.imageUrl }));
                 setImagePreview(retryResponse.imageUrl);
                 toast.success('Görsel başarıyla yüklendi');
@@ -702,27 +663,14 @@ export default function AdminPage() {
           toast.error('Görsel yüklenirken hata oluştu: ' + response.error);
         }
       } else {
-        console.log('✅ === IMAGE UPLOAD SUCCESS ===');
-        console.log('🔗 Image URL (full):', response.imageUrl);
-        console.log('📏 URL length:', response.imageUrl?.length);
-        console.log('📁 File name:', response.fileName);
-        console.log('🔐 URL type:', response.urlType || 'unknown');
-        console.log('⏰ Expires in:', response.expiresIn || 'unknown');
-        console.log('📋 Full response:', response);
-        
         setEventForm(prev => ({ ...prev, image: response.imageUrl }));
         setImagePreview(response.imageUrl);
-        console.log('✅ Form state updated with new image URL');
-        console.log('✅ Preview state updated');
         toast.success('Görsel başarıyla yüklendi');
       }
     } catch (error) {
-      console.error('💥 === IMAGE UPLOAD EXCEPTION ===');
-      console.error('Exception details:', error);
       toast.error('Görsel yüklenirken hata oluştu');
     } finally {
       setUploadingImage(false);
-      console.log('🏁 Upload process completed');
     }
   };
 
@@ -1235,11 +1183,6 @@ export default function AdminPage() {
                                 alt={event.title}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {
-                                  console.error('=== Admin Panel Event Image Load Failed ===');
-                                  console.error('Event Title:', event.title);
-                                  console.error('Image URL (first 100 chars):', event.image?.substring(0, 100));
-                                  console.error('Image URL length:', event.image?.length);
-                                  console.error('Image starts with data:image?', event.image?.startsWith('data:image'));
                                   e.currentTarget.style.display = 'none';
                                 }}
                               />
@@ -2735,9 +2678,6 @@ export default function AdminPage() {
                         alt="Preview"
                         className="w-32 h-32 object-cover rounded-lg"
                         onError={(e) => {
-                          console.error('=== Preview Image Load Failed ===');
-                          console.error('Image URL (first 100 chars):', imagePreview?.substring(0, 100));
-                          console.error('Image URL length:', imagePreview?.length);
                           setImagePreview('');
                           setEventForm(prev => ({ ...prev, image: '' }));
                         }}

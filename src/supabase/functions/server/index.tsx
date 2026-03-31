@@ -11,15 +11,12 @@ app.use('*', cors({
   origin: [
     'https://mmbrsociety.com',
     'https://www.mmbrsociety.com',
-    'https://mmbrsociety.vercel.app',  // Vercel preview
-    'http://localhost:5173',           // Lokal geliştirme (Vite default)
-    'http://localhost:4173',           // Lokal preview (vite preview)
+    'https://mmbrsociety.vercel.app',
   ],
   allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 }));
-app.use('*', logger(console.log));
 
 // ===== RATE LIMITER =====
 // Not: Edge Function tek instance üzerinde çalışır; memory-based limiter bu trafik hacmi için yeterlidir.
