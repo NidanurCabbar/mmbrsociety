@@ -63,8 +63,8 @@ export default function ScrollVideoSection({
     const { w: cw, h: ch } = sizeRef.current;
     if (!cw || !ch) return;
 
-    /* object-cover: ekranı tamamen doldur, gri kenarları kırp */
-    const scale  = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+    /* object-contain: görüntü kırpılmaz, siyah bantlarla ortalanır */
+    const scale  = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
     const drawW  = img.naturalWidth  * scale;
     const drawH  = img.naturalHeight * scale;
     const drawX  = (cw - drawW) / 2;
