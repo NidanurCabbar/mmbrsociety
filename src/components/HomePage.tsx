@@ -127,7 +127,7 @@ export default function HomePage() {
       <EventsSection />
 
       {/* About Section - Full Content */}
-      <section className="py-20 px-6 bg-gradient-to-b from-gray-900 to-black">
+      <section className="py-12 md:py-20 px-4 md:px-6 bg-gradient-to-b from-gray-900 to-black">
         <div className="container mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 50 }}
@@ -141,7 +141,7 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-5xl font-bold mb-6 text-primary text-glow"
+              className="text-3xl md:text-5xl font-bold mb-6 text-primary text-glow"
             >
               {t('home.about.title')}
             </motion.h2>
@@ -157,7 +157,7 @@ export default function HomePage() {
       </section>
 
       {/* Main About Content */}
-      <section ref={aboutSectionRef} className="py-16 px-6">
+      <section ref={aboutSectionRef} className="py-10 md:py-16 px-4 md:px-6">
         <div className="container mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
@@ -228,7 +228,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, rotateY: 45 }}
                 animate={isImageInView ? { opacity: 1, rotateY: 0 } : { opacity: 0, rotateY: 45 }}
                 transition={{ duration: 1.2, delay: 0.5 }}
-                className="w-full h-[600px] rounded-lg shadow-2xl overflow-hidden bg-gradient-to-br from-red-900 to-black flex items-center justify-center"
+                className="w-full h-[350px] md:h-[600px] rounded-lg shadow-2xl overflow-hidden bg-gradient-to-br from-red-900 to-black flex items-center justify-center"
               >
                 <motion.div
                   initial={{ scale: 1.3 }}
@@ -257,10 +257,10 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 px-6 bg-gradient-to-r from-gray-900 to-black">
+      <section className="py-10 md:py-16 px-4 md:px-6 bg-gradient-to-r from-gray-900 to-black">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-6 text-primary">{t('home.features.title')}</h3>
+          <div className="text-center mb-8 md:mb-12">
+            <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-primary">{t('home.features.title')}</h3>
             <p className="text-gray-300 max-w-2xl mx-auto">
               {t('home.features.subtitle')}
             </p>
@@ -278,23 +278,23 @@ export default function HomePage() {
               <ul className="space-y-4">
                 <li className="flex items-start gap-3 text-gray-200">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-lg">{t('home.features.list1')}</span>
+                  <span className="text-base md:text-lg">{t('home.features.list1')}</span>
                 </li>
                 <li className="flex items-start gap-3 text-gray-200">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-lg">{t('home.features.list2')}</span>
+                  <span className="text-base md:text-lg">{t('home.features.list2')}</span>
                 </li>
                 <li className="flex items-start gap-3 text-gray-200">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-lg">{t('home.features.list3')}</span>
+                  <span className="text-base md:text-lg">{t('home.features.list3')}</span>
                 </li>
                 <li className="flex items-start gap-3 text-gray-200">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-lg">{t('home.features.list4')}</span>
+                  <span className="text-base md:text-lg">{t('home.features.list4')}</span>
                 </li>
                 <li className="flex items-start gap-3 text-gray-200">
                   <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-lg">{t('home.features.list5')}</span>
+                  <span className="text-base md:text-lg">{t('home.features.list5')}</span>
                 </li>
               </ul>
             </div>
@@ -333,16 +333,16 @@ export default function HomePage() {
       </section>
 
       {/* Operating Hours Section */}
-      <section className="py-16 px-6 bg-gradient-to-b from-black to-gray-900">
+      <section className="py-10 md:py-16 px-4 md:px-6 bg-gradient-to-b from-black to-gray-900">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-center mb-12"
+            className="text-center mb-8 md:mb-12"
           >
-            <h3 className="text-3xl font-bold mb-6 text-primary">
+            <h3 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-primary">
               {t('home.hours.title')}
             </h3>
             <p className="text-gray-300 max-w-2xl mx-auto">
@@ -402,9 +402,9 @@ export default function HomePage() {
       </section>
 
       {/* Event Rules & Reservation Information */}
-      <section className="py-16 px-6 bg-gradient-to-b from-gray-900 to-black">
+      <section className="py-10 md:py-16 px-4 md:px-6 bg-gradient-to-b from-gray-900 to-black">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -412,7 +412,7 @@ export default function HomePage() {
             className="max-w-3xl mx-auto"
           >
             {/* Title with Icon */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6 md:mb-8">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
@@ -422,9 +422,9 @@ export default function HomePage() {
                   className="relative"
                 >
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-md animate-pulse"></div>
-                  <ShieldAlert className="w-10 h-10 text-primary relative z-10" strokeWidth={2.5} />
+                  <ShieldAlert className="w-8 h-8 md:w-10 md:h-10 text-primary relative z-10" strokeWidth={2.5} />
                 </motion.div>
-                <h3 className="text-3xl font-bold text-primary">
+                <h3 className="text-2xl md:text-3xl font-bold text-primary">
                   {t('home.rules.title')}
                 </h3>
               </div>
@@ -435,7 +435,7 @@ export default function HomePage() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative bg-gradient-to-br from-red-900/20 to-gray-800/30 border border-primary/30 rounded-2xl p-8 backdrop-blur-sm overflow-hidden"
+              className="relative bg-gradient-to-br from-red-900/20 to-gray-800/30 border border-primary/30 rounded-2xl p-5 md:p-8 backdrop-blur-sm overflow-hidden"
             >
               {/* Subtle corner accent */}
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full"></div>
@@ -499,10 +499,10 @@ export default function HomePage() {
       </section>
 
       {/* Contact Preview */}
-      <section className="py-20 px-6 bg-black">
+      <section className="py-12 md:py-20 px-4 md:px-6 bg-black">
         <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-6 text-primary">{t('home.contact.title')}</h2>
-          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 md:mb-6 text-primary">{t('home.contact.title')}</h2>
+          <p className="text-base md:text-lg text-gray-300 mb-6 md:mb-8 max-w-2xl mx-auto">
             {t('home.contact.description')}
           </p>
           
@@ -583,7 +583,7 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 py-8 px-6">
+      <footer className="bg-gray-900 py-6 md:py-8 px-4 md:px-6">
         <div className="container mx-auto text-center">
           <div className="text-2xl font-bold text-primary mb-4">MMBR</div>
           <p className="text-gray-400 mb-4">{t('footer.copyright')}</p>

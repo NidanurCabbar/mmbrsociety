@@ -26,9 +26,12 @@ interface ScrollVideoSectionProps {
 export default function ScrollVideoSection({
   framesPath,
   frameCount,
-  scrollHeight = 5400,
+  scrollHeight: propScrollHeight = 5400,
   skipInitialFrames = 0,
 }: ScrollVideoSectionProps) {
+  // Mobilde scroll mesafesini kısalt (daha hızlı geçiş)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const scrollHeight = isMobile ? Math.round(propScrollHeight * 0.6) : propScrollHeight;
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const rafRef     = useRef<number | null>(null);
@@ -167,6 +170,10 @@ export default function ScrollVideoSection({
         style={{ zIndex: 30 }}
       >
         <canvas ref={canvasRef} className="block w-full h-full" />
+        {/* Kenar vignette — görseldeki gri duvar kenarlarını siyaha eritir */}
+        <div className="absolute inset-0 pointer-events-none" style={{
+          boxShadow: 'inset 0 0 150px 60px rgba(0,0,0,0.85)',
+        }} />
 
         {/* Yükleniyor */}
         {!isReady && (
@@ -185,10 +192,10 @@ export default function ScrollVideoSection({
 
         {/* Scroll ipucu */}
         {isReady && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40 pointer-events-none select-none">
-            <span className="text-[10px] tracking-widest uppercase">Scroll</span>
+          <div className="absolute bottom-6 md:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40 pointer-events-none select-none">
+            <span className="text-xs md:text-[10px] tracking-widest uppercase">Scroll</span>
             <svg
-              className="w-4 h-4 animate-bounce"
+              className="w-5 h-5 md:w-4 md:h-4 animate-bounce"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
