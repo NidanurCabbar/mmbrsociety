@@ -19,12 +19,15 @@ interface ScrollVideoSectionProps {
   frameCount: number;
   /** Video %100'e ulaşana kadar gereken scroll mesafesi (px) */
   scrollHeight?: number;
+  /** Animasyonda atlanacak ilk frame sayısı (kapalı kapı frame'lerini kısaltır) */
+  skipInitialFrames?: number;
 }
 
 export default function ScrollVideoSection({
   framesPath,
   frameCount,
   scrollHeight = 5400,
+  skipInitialFrames = 0,
 }: ScrollVideoSectionProps) {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -60,8 +63,8 @@ export default function ScrollVideoSection({
     const { w: cw, h: ch } = sizeRef.current;
     if (!cw || !ch) return;
 
-    /* object-contain: görüntü kırpılmaz, siyah bantlarla ortalanır */
-    const scale  = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+    /* object-cover: ekranı tamamen doldur, gri kenarları kırp */
+    const scale  = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
     const drawW  = img.naturalWidth  * scale;
     const drawH  = img.naturalHeight * scale;
     const drawX  = (cw - drawW) / 2;
@@ -120,9 +123,10 @@ export default function ScrollVideoSection({
       const sy       = window.scrollY;
       const progress = Math.min(sy / scrollHeight, 1);
 
-      /* Hangi frame gösterilmeli */
+      /* Hangi frame gösterilmeli (skipInitialFrames kadar atla) */
+      const effectiveCount = frameCount - skipInitialFrames;
       const idx = Math.min(
-        Math.floor(progress * frameCount),
+        skipInitialFrames + Math.floor(progress * effectiveCount),
         frameCount - 1
       );
       drawFrame(idx);

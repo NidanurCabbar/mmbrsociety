@@ -99,7 +99,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Scroll-driven video — ana içerik bunun hemen altında başlar */}
-      <ScrollVideoSection framesPath="/frames" frameCount={151} scrollHeight={5400} />
+      <ScrollVideoSection framesPath="/frames" frameCount={151} scrollHeight={3000} skipInitialFrames={20} />
 
       <Navbar />
       
